@@ -1,0 +1,22 @@
+# Core libs
+transformers==4.46.3
+tokenizers==0.20.3
+accelerate==0.34.2
+huggingface-hub>=0.24
+safetensors
+sentencepiece
+pillow
+
+# Optional: fast downloads (script will auto-disable if missing)
+hf_transfer
+
+# Optional: quantization (Linux only; safe to skip if staying on bf16/CPU)
+bitsandbytes; platform_system == "Linux"
+
+# IMPORTANT:
+# Install PyTorch separately based on your hardware:
+#   CUDA 12.4 wheels:
+#     pip install --extra-index-url https://download.pytorch.org/whl/cu124 torch torchvision torchaudio
+#   CPU-only wheels:
+#     pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision torchaudio
+
