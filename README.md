@@ -36,12 +36,17 @@ chmod +x joycaption_install_and_run.sh
 
 # Default run (GPU + bf16 + fast downloads + sensible CUDA settings)
 ./joycaption_install_and_run.sh --dir /path/to/images
+```
 
-This will create a local virtual environment at ./.joycaption_env, install everything, download the model the first time, and write captions to <images>/joycaptions.
-Using a Python virtual environment (manual install)
+This will create a local virtual environment at `./.joycaption_env`, install everything, download the model the first time, and write captions to `<images>/joycaptions`.
+
+---
+
+## Using a Python virtual environment (manual install)
 
 If you’d rather manage the environment yourself:
 
+```bash
 # 1) Create & activate a venv
 python3 -m venv .venv
 source .venv/bin/activate
@@ -55,77 +60,78 @@ pip install --extra-index-url https://download.pytorch.org/whl/cu124 torch torch
 
 #   CPU-only wheels (if you don’t have a GPU):
 # pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision torchaudio
+```
 
 Now run the script as usual (it will detect the active venv):
-
+```bash
 ./joycaption_install_and_run.sh --dir /path/to/images
+```
 
-Examples
+---
 
-1) Default (best balance on an NVIDIA GPU)
+## Examples
 
+**1) Default (best balance on an NVIDIA GPU)**
+```bash
 ./joycaption_install_and_run.sh --dir ~/photos
+```
 
-2) Custom prompt + different output dir
+**2) Custom prompt + different output dir**
+```bash
+./joycaption_install_and_run.sh   --dir ~/photos   --out ~/photos/captions_longform   --prompt "Write a straightforward, accurate caption in under 60 words."
+```
 
-./joycaption_install_and_run.sh \
-  --dir ~/photos \
-  --out ~/photos/captions_longform \
-  --prompt "Write a straightforward, accurate caption in under 60 words."
-
-3) Throughput mode (shorter generations)
-
+**3) Throughput mode (shorter generations)**
+```bash
 ./joycaption_install_and_run.sh --dir ~/photos --max-tokens 192
+```
 
-4) Lower VRAM (8-bit / 4-bit quantization)
-
+**4) Lower VRAM (8-bit / 4-bit quantization)**
+```bash
 ./joycaption_install_and_run.sh --dir ~/photos --quant 8bit
 ./joycaption_install_and_run.sh --dir ~/photos --quant 4bit
+```
 
-5) Force CPU (slow, but universal)
-
+**5) Force CPU (slow, but universal)**
+```bash
 ./joycaption_install_and_run.sh --dir ~/photos --cpu
+```
 
-6) Limit to certain file types
-
+**6) Limit to certain file types**
+```bash
 ./joycaption_install_and_run.sh --dir ~/photos --pattern "*.{jpg,jpeg,png}"
+```
 
-7) Choose a different CUDA wheel index
-
+**7) Choose a different CUDA wheel index**
+```bash
 ./joycaption_install_and_run.sh --dir ~/photos --cuda-url https://download.pytorch.org/whl/cu121
+```
 
-Script options (flags)
+---
 
-    --dir PATH (required): Folder containing images (recurses).
+## Script options (flags)
 
-    --out PATH: Output folder for .txt captions (default: <dir>/joycaptions).
+- `--dir PATH` *(required)*: Folder containing images (recurses).  
+- `--out PATH`: Output folder for `.txt` captions (default: `<dir>/joycaptions`).  
+- `--prompt TEXT`: Captioning prompt (default: long, detailed description).  
+- `--quant {bf16,8bit,4bit,cpu,auto}`: Quantization (default: **bf16** on GPU).  
+- `--pattern GLOB`: File glob (default: `*.{jpg,jpeg,png,webp,bmp,tiff}`).  
+- `--max-tokens N`: Generation length (default: **256**).  
+- `--clear-cache`: Redownload model files (clears local HF cache for this model).  
+- `--cpu`: Force CPU install/run (overrides GPU defaults).  
+- `--no-hf-transfer`: Disable the fast download plugin if it causes issues.  
+- `--hf-home PATH`: Set/override the Hugging Face cache directory.  
+- `--alloc-conf VALUE`: Override `PYTORCH_CUDA_ALLOC_CONF` (default: `expandable_segments:True`).  
+- `--cuda-connections N`: Override `CUDA_DEVICE_MAX_CONNECTIONS` (default: `1`).  
+- `--cuda-url URL`: Choose a specific PyTorch CUDA wheel index (default: `cu124`).
 
-    --prompt TEXT: Captioning prompt (default: long, detailed description).
+---
 
-    --quant {bf16,8bit,4bit,cpu,auto}: Quantization (default: bf16 on GPU).
+## Recommended environment variables
 
-    --pattern GLOB: File glob (default: *.{jpg,jpeg,png,webp,bmp,tiff}).
+These are **already enabled by default** in the script, but you can set them yourself too:
 
-    --max-tokens N: Generation length (default: 256).
-
-    --clear-cache: Redownload model files (clears local HF cache for this model).
-
-    --cpu: Force CPU install/run (overrides GPU defaults).
-
-    --no-hf-transfer: Disable the fast download plugin if it causes issues.
-
-    --hf-home PATH: Set/override the Hugging Face cache directory.
-
-    --alloc-conf VALUE: Override PYTORCH_CUDA_ALLOC_CONF (default: expandable_segments:True).
-
-    --cuda-connections N: Override CUDA_DEVICE_MAX_CONNECTIONS (default: 1).
-
-    --cuda-url URL: Choose a specific PyTorch CUDA wheel index (default: cu124).
-
-Recommended environment variables
-
-These are already enabled by default in the script, but you can set them yourself too:
-
+```bash
 # Put the HF cache on a fast NVMe drive
 export HF_HOME=/fast-nvme/hf-cache
 
@@ -135,39 +141,44 @@ export HF_HUB_ENABLE_HF_TRANSFER=1
 # Smoother CUDA memory behavior
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export CUDA_DEVICE_MAX_CONNECTIONS=1
+```
 
-Output
+---
 
-For each image foo/bar.jpg, the script writes a caption to:
+## Output
 
+For each image `foo/bar.jpg`, the script writes a caption to:
+```
 <out>/foo/bar.txt
+```
 
-Troubleshooting
+---
 
-    Script says Device: cpu | Quant: cpu but you have a GPU
-    Ensure the venv has a CUDA PyTorch build and the process can see your GPU:
+## Troubleshooting
 
-    source ./.joycaption_env/venv/bin/activate
-    python - << 'PY'
-
+- **Script says `Device: cpu | Quant: cpu` but you have a GPU**  
+  Ensure the venv has a **CUDA** PyTorch build and the process can see your GPU:
+  ```bash
+  source ./.joycaption_env/venv/bin/activate
+  python - << 'PY'
 import torch, sys
-print("torch:", torch.version)
+print("torch:", torch.__version__)
 print("built_with_cuda:", torch.backends.cuda.is_built())
 print("cuda_is_available:", torch.cuda.is_available())
 print("torch.version.cuda:", torch.version.cuda)
 PY
-
-If `built_with_cuda=False` or `cuda_is_available=False`, reinstall torch with the right CUDA wheels
-(`--extra-index-url https://download.pytorch.org/whl/cu124`), or run the container with `--gpus all`.
+  ```
+  If `built_with_cuda=False` or `cuda_is_available=False`, reinstall torch with the right CUDA wheels
+  (`--extra-index-url https://download.pytorch.org/whl/cu124`), or run the container with `--gpus all`.
 
 - **“Fast download using hf_transfer is enabled but package not available”**  
-Either install it inside the venv (`pip install -U hf_transfer huggingface_hub`) or add `--no-hf-transfer`.
+  Either install it inside the venv (`pip install -U hf_transfer huggingface_hub`) or add `--no-hf-transfer`.
 
 - **OOM (out of memory) on GPU**  
-Try `--quant 8bit` or lower `--max-tokens` (e.g., `192`).
+  Try `--quant 8bit` or lower `--max-tokens` (e.g., `192`).
 
 - **No images found**  
-Double-check `--pattern` (brace globs are supported: `*.{jpg,png}`) and that `--dir` exists.
+  Double-check `--pattern` (brace globs are supported: `*.{jpg,png}`) and that `--dir` exists.
 
 ---
 
@@ -175,5 +186,3 @@ Double-check `--pattern` (brace globs are supported: `*.{jpg,png}`) and that `--
 
 - This repo’s script(s) are yours to license (MIT is common).  
 - The JoyCaption model and any base components are subject to their **own licenses** on Hugging Face. Review and comply with those licenses before use.
-
----
